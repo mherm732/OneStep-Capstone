@@ -9,6 +9,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 
 @Entity 
@@ -21,12 +24,22 @@ public class User {
 	@Column(name = "userId", nullable = false, updatable = false, columnDefinition = "CHAR(36)")
 	private UUID userId; 
 	
+	@NotBlank
+	@Size(max = 50)
+	@Email
 	@Column(name = "userEmail", nullable = false, unique = true, length = 255)
 	private String userEmail;
+	
+	@NotBlank
+	@Size(max = 20)
 	@Column(name = "userName", nullable = false, unique = true, length = 255)
 	private String userName; 
+	
+	@NotBlank
+	@Size(max = 120)
 	@Column(name = "userPassword", nullable = false, unique = true, length = 255)
 	private String userPassword; 
+	
 	@Column(name = "registrationDate")
 	private LocalDateTime registrationDate;
 	@Column(name = "lastLogin")
