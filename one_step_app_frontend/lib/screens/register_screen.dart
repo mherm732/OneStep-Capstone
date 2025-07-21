@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -13,13 +15,62 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String email = '';
   String password = '';
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      print('Name: $name, Email: $email, Password: $password');
-      // TODO: Send data to backend
+Future<bool> registerUser(String name, String email, String password) async {
+  const String baseUrl = 'http://192.168.1.121:8080'; 
+  final Uri url = Uri.parse('$baseUrl/api/auth/register');
+
+  try {
+    print('sending POST request to url');
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'username': name,
+        'email': email,
+        'password': password,
+      }),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      print('Registration successful');
+      return true;
+    } else {
+      print(' Registration failed: ${response.statusCode}');
+      print('Body: ${response.body}');
+      return false;
     }
+  } catch (e) {
+    print('Network error: $e');
+    return false;
   }
+}
+
+void _submitForm() async {
+  print('SUBMIT BUTTON CLICKED');
+
+  if (_formKey.currentState!.validate()) {
+    print('FORM VALID');
+
+    _formKey.currentState!.save();
+
+    print('Name: $name, Email: $email, Password: $password');
+
+    bool success = await registerUser(name, email, password);
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registration successful')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registration failed')),
+      );
+    }
+  } else {
+    print('FORM INVALID');
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +83,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-        Navigator.pop(context); // Pops current screen and returns to previous
+        Navigator.pop(context); 
           },
         ),
       ),

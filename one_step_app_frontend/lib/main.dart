@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:one_step_app_flutter/HomeDashboardScreen.dart';
-import 'package:one_step_app_flutter/login_screen.dart';
-import 'package:one_step_app_flutter/register_login_selection.dart';
-import 'package:one_step_app_flutter/register_screen.dart'; 
+import 'package:one_step_app_flutter/screens/HomeDashboardScreen.dart';
+import 'package:one_step_app_flutter/screens/login_screen.dart';
+import 'package:one_step_app_flutter/screens/register_login_selection.dart';
+import 'package:one_step_app_flutter/screens/register_screen.dart'; 
 
 void main() {
   runApp(
