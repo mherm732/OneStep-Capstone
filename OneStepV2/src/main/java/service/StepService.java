@@ -1,5 +1,7 @@
 package service;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -29,14 +31,22 @@ public class StepService {
 		System.out.println("Creating new step...Processing...");
 		
 		Optional<Step> existingStep = stepRepository.findByStepDescription(step.getStepDescription());
+		
 		if(existingStep.isPresent()) {
 			throw new RuntimeException("Step already exists.");
 		}
 		
 		Step newStep = new Step();
 		newStep.setStepDescription(step.getStepDescription());
-		newStep.setStepOrder(step.getStepOrder());
-	    newStep.setIsAiGenerated(step.getIsAiGenerated());
+		
+		if(getStepsByGoalId(goalId).isEmpty()) {
+			newStep.setStepOrder(step.getStepOrder());
+		} else {
+			List<Step> steps = getStepsByGoalId(goalId);
+			newStep.setStepOrder(steps.size());
+		}
+		
+		newStep.setIsAiGenerated(step.getIsAiGenerated());
 		newStep.setGoal(goal);
 		
 		
@@ -45,6 +55,24 @@ public class StepService {
 
 	public List<Step> getStepsByGoalId(UUID goalId) {
 		return stepRepository.findByGoal_GoalId(goalId);
+	}
+	
+	public Step getCurrentStepForGoal(UUID goalId) {
+		List<Step> steps = getStepsByGoalId(goalId);
+		
+		if(steps.isEmpty()) {
+			return null;
+		} 
+		
+		Collections.sort(steps, Comparator.comparingInt(Step::getStepOrder));
+		
+		for(Step step: steps) {
+			if(step.getStatus() != StepStatus.COMPLETED) {
+				return step;
+			}
+		}
+		
+		return steps.get(steps.size() - 1);
 	}
 	
 	public Step updateStep(UUID stepId, Step step) {
@@ -74,6 +102,13 @@ public class StepService {
 	public void deleteAllStepsByGoalId(UUID goalId) {
 	    List<Step> steps = stepRepository.findByGoal_GoalId(goalId);
 	    stepRepository.deleteAll(steps);
+	}
+
+	public Step markStepAsSkipped(UUID stepId, Step step) {
+		Step skippedStep = stepRepository.findById(stepId).orElseThrow(() -> 
+				new RuntimeException("Step not found"));
+		skippedStep.setStatus(StepStatus.SKIPPED);
+		return stepRepository.save(skippedStep);
 	}
 
 	

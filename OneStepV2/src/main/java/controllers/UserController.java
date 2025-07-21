@@ -24,7 +24,7 @@ public class UserController {
 
 	@PostMapping("/register")
 	public ResponseEntity<String> register(@RequestBody User user) {
-		System.out.println("Register endpoint hit with username: " + user.getUserName());
+		System.out.println("Register endpoint hit with username: " + user.getusername());
 		userService.register(user);
 		return ResponseEntity.ok("User registered successfully.");
 	}
@@ -33,7 +33,7 @@ public class UserController {
 	public ResponseEntity<String> login(@RequestBody User user) {
 		boolean authenticated = userService.authenticate(user);
 		if (authenticated) {
-			return ResponseEntity.ok("Login successful for user: " + user.getUserName());
+			return ResponseEntity.ok("Login successful for user: " + user.getusername());
 		} else {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
 		}

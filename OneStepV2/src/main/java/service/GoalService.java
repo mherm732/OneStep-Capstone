@@ -50,6 +50,12 @@ public class GoalService {
 		return goalRepository.findByUser_UserId(userId);
 	}
 	
+	public List<Goal> getGoalsByEmail(String email) {
+	    User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+	    return goalRepository.findByUser(user);
+	}
+
+	
 	public Goal updateGoal(UUID goalID, Goal goal) {
 
 		Goal updatedGoal = goalRepository.findById(goalID).orElseThrow(() -> 
@@ -72,6 +78,32 @@ public class GoalService {
 	public void deleteGoal(UUID goalID) {
 		goalRepository.deleteById(goalID);
 		
+	}
+
+	public Goal createGoalForEmail(String email, Goal goal) {
+		User user = userRepository.findByEmail(email).orElseThrow(() -> 
+	       new RuntimeException("User not found"));
+		
+		System.out.println("Creating new goal...Processing...");
+		
+		Optional<Goal> existingGoal = goalRepository.findByTitle(goal.getTitle());
+		if (existingGoal.isPresent()) {
+			throw new RuntimeException("Goal already exists.");
+		}
+		
+		
+		Goal newGoal = new Goal();
+		
+		System.out.println("Making goal with title: " + goal.getTitle());
+		newGoal.setTitle(goal.getTitle());
+		System.out.println("Making goal with description " + goal.getGoalDescription());
+		newGoal.setGoalDescription(goal.getGoalDescription());
+		
+		newGoal.setUser(user);
+		
+		System.out.println("New goal created: ");
+		
+		return goalRepository.save(newGoal);
 	}
 }
 

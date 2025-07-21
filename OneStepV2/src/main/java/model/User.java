@@ -27,13 +27,13 @@ public class User {
 	@NotBlank
 	@Size(max = 50)
 	@Email
-	@Column(name = "userEmail", nullable = false, unique = true, length = 255)
-	private String userEmail;
+	@Column(name = "email", nullable = false, unique = true, length = 255)
+	private String email;
 	
 	@NotBlank
 	@Size(max = 20)
-	@Column(name = "userName", nullable = false, unique = true, length = 255)
-	private String userName; 
+	@Column(name = "username", nullable = false, unique = true, length = 255)
+	private String username; 
 	
 	@NotBlank
 	@Size(max = 120)
@@ -50,10 +50,10 @@ public class User {
 		lastLogin = LocalDateTime.now();
 	}
 	
-	public User(UUID userId, String userEmail, String userName, String userPassword, LocalDateTime registrationDate, LocalDateTime lastLogin) {
+	public User(UUID userId, String email, String username, String userPassword, LocalDateTime registrationDate, LocalDateTime lastLogin) {
 		this.userId = userId;
-		this.userEmail = userEmail;
-		this.userName = userName; 
+		this.email = email;
+		this.username = username; 
 		this.userPassword = userPassword;
 		this.registrationDate = registrationDate;
 		this.lastLogin = lastLogin;
@@ -67,20 +67,20 @@ public class User {
 		return userId;
 	}
 	
-	public void setUserEmail(String userEmail) {
-		this.userEmail = userEmail;
+	public void setEmail(String email) {
+		this.email = email;
 	}
 	
-	public String getUserEmail() {
-		return userEmail;
+	public String getEmail() {
+		return email;
 	}
 	
-	public void setUserName(String userName) {
-		this.userName = userName;
+	public void setusername(String username) {
+		this.username = username;
 	}
 	
-	public String getUserName() {
-		return userName;
+	public String getusername() {
+		return username;
 	}
 	
 	public void setUserPassword(String userPassword) {
@@ -111,8 +111,8 @@ public class User {
 	public String toString() {
 		return "--------User---------" + "\n" +
 				"User Id: " + userId + "\n" +
-				"User Email: " + userEmail + "\n" + 
-				"Username: " + userName + "\n" + 
+				"User Email: " + email + "\n" + 
+				"username: " + username + "\n" + 
 				"User password: " + userPassword + "\n" + 
 				"Registration date: " + registrationDate + "\n" +
 				"Last login: " + lastLogin + "\n" +

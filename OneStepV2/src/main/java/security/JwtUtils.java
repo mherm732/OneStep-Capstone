@@ -11,7 +11,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 
 @Component
 public class JwtUtils {
-	private final String jwtSecret = "mySecretKey";
+	private final String jwtSecret = "nT2lLTT59JUzY1BS3Af6c9FL+H1kBS8XKtwO2aIj6rGOuHRPvZXZ7y3B0ElLM+Fgph1OPX7Zp6RLDrMIM5xW1Q==";
 	private final long jwtExpirationMs = 86400000;
 	
 	@SuppressWarnings("deprecation")
@@ -26,12 +26,12 @@ public class JwtUtils {
 	}
 	
 	@SuppressWarnings("deprecation")
-	public String getUsernameFromJwtToken(String token) {
+	public String getEmailFromJwtToken(String token) {
 		return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getSubject();
 	}
 	
 	@SuppressWarnings("deprecation")
-	public boolean validateJwtsToken(String token) {
+	public boolean validateJwtToken(String token) {
 		try {
 			Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token);
 			return true;

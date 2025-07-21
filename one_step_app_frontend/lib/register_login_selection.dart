@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'registration_login_simple.dart';
-import 'login_screen.dart';
 
 
 class AuthSelectionScreen extends StatelessWidget {
@@ -41,20 +39,14 @@ class AuthSelectionScreen extends StatelessWidget {
                     _buildActionButton(
                       label: 'Login',
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const LoginScreen()),
-                        );
+                        Navigator.pushNamed(context, '/login');
                       },
                     ),
                     const SizedBox(height: 32),
                     _buildActionButton(
                       label: 'Register',
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                        );
+                        Navigator.pushNamed(context, '/register');
                       },
                     ),
                   ],

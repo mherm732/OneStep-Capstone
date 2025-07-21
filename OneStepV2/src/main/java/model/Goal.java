@@ -3,6 +3,8 @@ package model;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -22,9 +24,15 @@ public class Goal {
 	private UUID goalId;
 	
 	private String title; 
+	
+	@JsonProperty("goalDescription")
 	private String goalDescription;
+	
 	private LocalDateTime dateCreated;
+	
+	@Column(name = "dateCompleted", nullable = true)
 	private LocalDateTime dateCompleted;
+	
 	private int totalSteps = 0;
 	private int stepsCompleted = 0;
 	
@@ -40,16 +48,16 @@ public class Goal {
 		this.goalStatus = Status.IN_PROGRESS;
 	}
 	
-	public Goal(String title, String goalDescription, LocalDateTime dateCreated, LocalDateTime dateCompleted, int totalSteps, int stepsCompleted, Status goalStatus) {
+	/*public Goal(String title, LocalDateTime dateCreated, LocalDateTime dateCompleted, int totalSteps, int stepsCompleted, Status goalStatus) {
 	
 		this.title = title;
-		this.goalDescription = goalDescription;
+		//this.goalDescription = goalDescription;
 		this.dateCreated = dateCreated;
-		this.dateCompleted = dateCompleted;
+		dateCompleted = null;
 		this.totalSteps = totalSteps;
 		this.stepsCompleted = stepsCompleted;
 		this.goalStatus = goalStatus;
-	}
+	}*/
 	
 	public UUID getGoalId() {
 		return goalId;
@@ -67,10 +75,13 @@ public class Goal {
 		return title;
 	}
 	
+
+	@JsonProperty("goalDescription")
 	public void setGoalDescription(String goalDescription) {
 		this.goalDescription = goalDescription;
 	}
 	
+	@JsonProperty("goalDescription")
 	public String getGoalDescription() {
 		return goalDescription;
 	}

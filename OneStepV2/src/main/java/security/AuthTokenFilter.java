@@ -27,12 +27,33 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain)
                                     throws ServletException, IOException {
-        try {
+    	if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+    	    response.setStatus(HttpServletResponse.SC_OK);
+    	    return;
+    	}
+    	
+    	try {
+            String path = request.getServletPath();
+            System.out.println("Raw Authorization Header: " + request.getHeader("Authorization"));
+            System.out.println("Request Path: " + path);
+            if(path.startsWith("/api/auth")) {
+            	filterChain.doFilter(request, response);
+            	return;
+            }
+            
             String jwt = parseJwt(request);
-            if (jwt != null && jwtUtils.validateJwtsToken(jwt)) {
-                String username = jwtUtils.getUsernameFromJwtToken(jwt);
+            
+            if (jwt == null) {
+                System.out.println("No JWT token found in Authorization header.");
+            } else if (!jwtUtils.validateJwtToken(jwt)) {
+                System.out.println("Invalid JWT token received.");
+            }
 
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
+                String email = jwtUtils.getEmailFromJwtToken(jwt);
+                System.out.println("Token is valid. Authenticated user: " + email);
+                
+                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
                 UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
                         userDetails,
