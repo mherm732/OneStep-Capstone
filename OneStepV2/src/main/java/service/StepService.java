@@ -7,7 +7,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import model.Goal;
 import model.Step;
@@ -57,23 +59,31 @@ public class StepService {
 		return stepRepository.findByGoal_GoalId(goalId);
 	}
 	
-	public Step getCurrentStepForGoal(UUID goalId) {
-		List<Step> steps = getStepsByGoalId(goalId);
-		
-		if(steps.isEmpty()) {
-			return null;
-		} 
-		
-		Collections.sort(steps, Comparator.comparingInt(Step::getStepOrder));
-		
-		for(Step step: steps) {
-			if(step.getStatus() != StepStatus.COMPLETED) {
-				return step;
-			}
-		}
-		
-		return steps.get(steps.size() - 1);
+	public Step getCurrentStepForGoal(UUID goalId, String userEmail) {
+	    Goal goal = goalRepository.findById(goalId)
+	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Goal not found"));
+
+	    if (!goal.getUser().getEmail().equals(userEmail)) {
+	        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied to this goal");
+	    }
+
+	    List<Step> steps = getStepsByGoalId(goalId);
+
+	    if (steps.isEmpty()) {
+	        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No steps found for this goal");
+	    }
+
+	    steps.sort(Comparator.comparingInt(Step::getStepOrder));
+
+	    for (Step step : steps) {
+	        if (step.getStatus() != StepStatus.COMPLETED) {
+	            return step;
+	        }
+	    }
+
+	    return steps.get(steps.size() - 1);
 	}
+
 	
 	public Step updateStep(UUID stepId, Step step) {
 		Step updatedStep = stepRepository.findById(stepId).orElseThrow(() -> 

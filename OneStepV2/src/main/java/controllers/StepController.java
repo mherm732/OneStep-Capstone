@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,8 +38,9 @@ public class StepController {
 	}
 	
 	@GetMapping("/goal/{goalId}/current")
-	public ResponseEntity<Step> getCurrentStep(@PathVariable UUID goalId) {
-	    Step current = stepService.getCurrentStepForGoal(goalId); 
+	public ResponseEntity<Step> getCurrentStep(@PathVariable UUID goalId, Authentication authentication) {
+		String email = authentication.getName();
+	    Step current = stepService.getCurrentStepForGoal(goalId, email); 
 	    return ResponseEntity.ok(current);
 	}
 

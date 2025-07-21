@@ -1,76 +1,78 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:one_step_app_flutter/screens/HomeDashboardScreen.dart';
 
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({Key? key}) : super(key: key);
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  String name = '';
   String email = '';
   String password = '';
 
-Future<bool> registerUser(String name, String email, String password) async {
-  const String baseUrl = 'http://192.168.1.121:8080'; // Replace with your local IP address
-  final Uri url = Uri.parse('$baseUrl/api/auth/register');
+  final FlutterSecureStorage secureStorage = FlutterSecureStorage(); 
 
-  try {
-    print('sending POST request to url');
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'username': name,
-        'email': email,
-        'password': password,
-      }),
-    );
+  Future<String?> login(String email, String password) async {
+    const String baseUrl = 'http://192.168.1.121:8080'; 
+    final Uri url = Uri.parse('$baseUrl/api/auth/login');
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      print('Registration successful');
-      return true;
-    } else {
-      print(' Registration failed: ${response.statusCode}');
-      print('Body: ${response.body}');
-      return false;
-    }
-  } catch (e) {
-    print('Network error: $e');
-    return false;
-  }
-}
-
-void _submitForm() async {
-  print('SUBMIT BUTTON CLICKED');
-
-  if (_formKey.currentState!.validate()) {
-    print('FORM VALID');
-
-    _formKey.currentState!.save();
-
-    print('Name: $name, Email: $email, Password: $password');
-
-    bool success = await registerUser(name, email, password);
-
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registration successful')),
+    try {
+      final http.Response response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password}),
       );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registration failed')),
-      );
-    }
-  } else {
-    print('FORM INVALID');
-  }
-}
 
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        final String? token = responseData['token']; 
+
+        if (token != null) {
+          await secureStorage.write(key: 'jwt', value: token);
+          print("Login success. Token saved securely.");
+          return token;
+        } else {
+          print("No token found in response.");
+          return null;
+        }
+      } else {
+        print("Login failed. Status: ${response.statusCode}");
+        return null;
+      }
+    } catch (e) {
+      print("Error during login: $e");
+      return null;
+    }
+  }
+
+  void _submitForm() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      print('Logging in with: $email, $password');
+
+      String? token = await login(email, password);
+
+      if (token != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login successful')),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeDashboardScreen()),
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login failed')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,9 +84,7 @@ void _submitForm() async {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-        Navigator.pop(context); // Pops current screen and returns to previous
-          },
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: Row(
@@ -93,19 +93,20 @@ void _submitForm() async {
           Container(
             width: screenWidth * 0.4,
             color: const Color(0xffd5d1bf),
-            child: Center(
+            child: const Center(
               child: Text(
                 'One Step',
                 style: TextStyle(
                   fontFamily: 'JetBrainsMono Nerd Font',
                   fontSize: 64,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xff1d2528),
+                  color: Color(0xff1d2528),
                 ),
               ),
             ),
           ),
-          // Right Panel (Form)
+
+          // Right Panel
           Expanded(
             child: Container(
               color: const Color(0xff1d2528),
@@ -113,12 +114,12 @@ void _submitForm() async {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Create an account',
+                  const Text(
+                    'Welcome back',
                     style: TextStyle(
                       fontFamily: 'JetBrainsMono Nerd Font',
                       fontSize: 36,
-                      color: const Color(0xffe6e6e6),
+                      color: Color(0xffe6e6e6),
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -126,11 +127,6 @@ void _submitForm() async {
                     key: _formKey,
                     child: Column(
                       children: [
-                        _buildTextField(
-                          label: 'Name',
-                          onSaved: (val) => name = val!,
-                        ),
-                        const SizedBox(height: 20),
                         _buildTextField(
                           label: 'E-mail',
                           keyboardType: TextInputType.emailAddress,
@@ -148,6 +144,7 @@ void _submitForm() async {
                             backgroundColor: const Color(0xffd9f316),
                             foregroundColor: const Color(0xff1d2528),
                             textStyle: const TextStyle(
+                              fontFamily: 'JetBrainsMono Nerd Font',
                               fontStyle: FontStyle.italic,
                               fontSize: 24,
                               fontWeight: FontWeight.w300,
@@ -158,7 +155,7 @@ void _submitForm() async {
                             ),
                           ),
                           onPressed: _submitForm,
-                          child: const Text('Sign Up'),
+                          child: const Text('Log In'),
                         ),
                       ],
                     ),
