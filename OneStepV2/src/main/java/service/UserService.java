@@ -18,15 +18,15 @@ public class UserService {
 	public User register(User user) {
 		System.out.println("Registering user in register()....");
 		
-		Optional<User> existingUser = userRepository.findByUserName(user.getUserName()); 
+		Optional<User> existingUser = userRepository.findByUsername(user.getusername()); 
 		if (existingUser.isPresent()) {
 			throw new RuntimeException("Username is already taken.");
 		}
 		
 		User newUser = new User();
-		newUser.setUserName(user.getUserName());
+		newUser.setusername(user.getusername());
 		newUser.setUserPassword(user.getUserPassword()); 
-		newUser.setUserEmail(user.getUserEmail());
+		newUser.setEmail(user.getEmail());
 		newUser.setRegistrationDate(LocalDateTime.now());
 		newUser.setLastLogin(LocalDateTime.now());
 
@@ -36,14 +36,14 @@ public class UserService {
 	}
 	
 	public boolean authenticate(User user) {
-		Optional<User> existingUser = userRepository.findByUserName(user.getUserName());
+		Optional<User> existingUser = userRepository.findByUsername(user.getusername());
 		if (existingUser.isPresent()) {
 			return user.getUserPassword().equals(existingUser.get().getUserPassword());
 		}
 		return false;
 	}
 
-	public User findByUsername(String username) {
-	    return userRepository.findByUserName(username).orElse(null);
+	public User findByUsername(String userName) {
+	    return userRepository.findByUsername(userName).orElse(null);
 	}
 }

@@ -32,10 +32,10 @@ public class AuthController {
 	  @PostMapping("/login")
 	  public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
 	    Authentication authentication = authenticationManager.authenticate(
-	      new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+	      new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
 	    SecurityContextHolder.getContext().setAuthentication(authentication);
 	    String jwt = jwtUtils.generateJwtToken(authentication);
-
+	    
 	    return ResponseEntity.ok(new JwtResponse(jwt));
 	  }
 
@@ -50,8 +50,8 @@ public class AuthController {
 	    }
 
 	    User user = new User();
-	    user.setUserName(signUpRequest.getUsername());
-	    user.setUserEmail(signUpRequest.getEmail());
+	    user.setusername(signUpRequest.getUsername());
+	    user.setEmail(signUpRequest.getEmail());
 	    user.setUserPassword(encoder.encode(signUpRequest.getPassword()));
 	    userRepository.save(user);
 

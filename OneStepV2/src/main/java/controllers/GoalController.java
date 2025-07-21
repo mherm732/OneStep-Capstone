@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,19 +21,33 @@ import service.GoalService;
 import service.StepService;
 
 @RestController
-@RequestMapping("/goals")
+@RequestMapping("/api/goals")
 public class GoalController {
+    
+    @Autowired 
+    private GoalService goalService;
+
+    @Autowired 
+    private StepService stepService;
+
+    @GetMapping("/user")
+    public ResponseEntity<List<Goal>> getGoalsForAuthenticatedUser(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+
+        String email = authentication.getName();
+        List<Goal> goals = goalService.getGoalsByEmail(email);
+        return ResponseEntity.ok(goals);
+    }
 	
-	@Autowired 
-	private GoalService goalService;
-	
-	@Autowired 
-	private StepService stepService;
-	
-	@PostMapping("/create/{userId}")
-	public ResponseEntity<Goal> createGoal(@RequestBody Goal goal, @PathVariable UUID userId){
-		 Goal createdGoal = goalService.createGoal(userId, goal);
-		 return ResponseEntity.ok(createdGoal);
+	@PostMapping("/create")
+	public ResponseEntity<Goal> createGoal(@RequestBody Goal goal, Authentication authentication){
+		String email = authentication.getName();
+		System.out.println("Received JSON title: " + goal.getTitle());
+		System.out.println("Received JSON description: " + goal.getGoalDescription());
+		System.out.println("Received JSON status: " + goal.getGoalStatus());
+		return ResponseEntity.ok(goalService.createGoalForEmail(email, goal));
 	}
 	
 	@GetMapping("/user/{userId}")

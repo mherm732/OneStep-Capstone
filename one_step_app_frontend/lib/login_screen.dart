@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:one_step_app_flutter/HomeDashboardScreen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,11 +16,61 @@ class _LoginScreenState extends State<LoginScreen> {
   String email = '';
   String password = '';
 
-  void _submitForm() {
+  final FlutterSecureStorage secureStorage = FlutterSecureStorage(); 
+
+  Future<String?> login(String email, String password) async {
+    const String baseUrl = 'http://192.168.1.121:8080'; 
+    final Uri url = Uri.parse('$baseUrl/api/auth/login');
+
+    try {
+      final http.Response response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password}),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        final String? token = responseData['token']; 
+
+        if (token != null) {
+          await secureStorage.write(key: 'jwt', value: token);
+          print("Login success. Token saved securely.");
+          return token;
+        } else {
+          print("No token found in response.");
+          return null;
+        }
+      } else {
+        print("Login failed. Status: ${response.statusCode}");
+        return null;
+      }
+    } catch (e) {
+      print("Error during login: $e");
+      return null;
+    }
+  }
+
+  void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       print('Logging in with: $email, $password');
-      // TODO: Add backend login call here
+
+      String? token = await login(email, password);
+
+      if (token != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login successful')),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeDashboardScreen()),
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login failed')),
+        );
+      }
     }
   }
 
@@ -30,9 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-             Navigator.pop(context); // Pops current screen and returns to previous
-          },
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: Row(
@@ -41,14 +93,14 @@ class _LoginScreenState extends State<LoginScreen> {
           Container(
             width: screenWidth * 0.4,
             color: const Color(0xffd5d1bf),
-            child: Center(
+            child: const Center(
               child: Text(
                 'One Step',
                 style: TextStyle(
                   fontFamily: 'JetBrainsMono Nerd Font',
                   fontSize: 64,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xff1d2528),
+                  color: Color(0xff1d2528),
                 ),
               ),
             ),
@@ -62,12 +114,12 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Welcome back',
                     style: TextStyle(
                       fontFamily: 'JetBrainsMono Nerd Font',
                       fontSize: 36,
-                      color: const Color(0xffe6e6e6),
+                      color: Color(0xffe6e6e6),
                     ),
                   ),
                   const SizedBox(height: 40),

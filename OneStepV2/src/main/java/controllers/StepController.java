@@ -24,16 +24,24 @@ public class StepController {
 	@Autowired 
 	private StepService stepService;
 	
+	
 	@PostMapping("/create/{goalId}")
 	public ResponseEntity<Step> createStep(@RequestBody Step step, @PathVariable UUID goalId){
 		Step newStep = stepService.createStep(goalId, step);
 		return ResponseEntity.ok(newStep);
 	}
 	
-	@GetMapping("/{goalId}")
+	@GetMapping("/goal/{goalId}")
 	public ResponseEntity<List<Step>> getStepsByGoal(@PathVariable UUID goalId){
 		return ResponseEntity.ok(stepService.getStepsByGoalId(goalId));
 	}
+	
+	@GetMapping("/goal/{goalId}/current")
+	public ResponseEntity<Step> getCurrentStep(@PathVariable UUID goalId) {
+	    Step current = stepService.getCurrentStepForGoal(goalId); 
+	    return ResponseEntity.ok(current);
+	}
+
 	
 	@PutMapping("/update/{stepId}")
 	public ResponseEntity<Step> updateStepById(@RequestBody Step step, @PathVariable UUID stepId) {
@@ -45,6 +53,12 @@ public class StepController {
 	public ResponseEntity<Step> markCompleteByStepId(@RequestBody Step step, @PathVariable UUID stepId){
 		Step completedStep = stepService.markStepAsCompleted(stepId, step);
 		return ResponseEntity.ok(completedStep);
+	}
+	
+	@PutMapping("/skip/{stepId}")
+	public ResponseEntity<Step> skipCurrentStep(@RequestBody Step step, @PathVariable UUID stepId){
+		Step skippedStep = stepService.markStepAsSkipped(stepId, step);
+		return ResponseEntity.ok(skippedStep);
 	}
 	
 	@DeleteMapping("/delete/{stepId}")
