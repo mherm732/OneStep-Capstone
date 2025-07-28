@@ -3,6 +3,7 @@ import '../utils/logout_util.dart';
 
 AppBar buildAppBarWithLogout(BuildContext context, String title) {
   return AppBar(
+    automaticallyImplyLeading: false,
     title: Text(title),
     centerTitle: true,
     actions: [

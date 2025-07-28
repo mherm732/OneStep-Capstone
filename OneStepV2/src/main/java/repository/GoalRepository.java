@@ -1,6 +1,7 @@
 package repository;
 
 import model.Goal;
+import model.Status;
 import model.User;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,7 +16,7 @@ public interface GoalRepository extends JpaRepository<Goal, UUID> {
 	Optional<Goal> findByTitle(String title);
 	List<Goal> findByUser_UserId(UUID userId);
 	List<Goal> findByUser(User user);
-
+	List<Goal> findByGoalStatus(Status goalStatus);
 
 }
 

@@ -46,6 +46,10 @@ public class GoalService {
 		
 	}
 	
+	public Optional<Goal> getGoalByGoalId(UUID goalId) {
+		return goalRepository.findById(goalId);
+	}
+	
 	public List<Goal> getGoalsByUserId(UUID userId){
 		return goalRepository.findByUser_UserId(userId);
 	}
@@ -69,7 +73,7 @@ public class GoalService {
 	}
 	
 	
-	public Goal markGoalAsCompleted(UUID goalID, Goal goal) {
+	public Goal markGoalAsCompleted(UUID goalID) {
 		Goal completedGoal = goalRepository.findById(goalID).orElseThrow(() -> new RuntimeException("Goal not found."));
 		completedGoal.setGoalStatus(Status.COMPLETED);
 		return goalRepository.save(completedGoal);
@@ -104,6 +108,14 @@ public class GoalService {
 		System.out.println("New goal created: ");
 		
 		return goalRepository.save(newGoal);
+	}
+
+	public List<Goal> getCompletedGoalsForUser() {
+		return goalRepository.findByGoalStatus(Status.COMPLETED);
+	}
+
+	public List<Goal> getInProgressGoalsForUser() {
+		return goalRepository.findByGoalStatus(Status.IN_PROGRESS);
 	}
 }
 
