@@ -1,5 +1,6 @@
 package service;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -14,8 +15,11 @@ import org.springframework.web.server.ResponseStatusException;
 import model.Goal;
 import model.Step;
 import model.StepStatus;
+import model.User;
+import service.GoalService;
 import repository.GoalRepository;
 import repository.StepRepository;
+import repository.UserRepository;
 
 @Service 
 public class StepService {
@@ -26,16 +30,22 @@ public class StepService {
 	@Autowired
 	private GoalRepository goalRepository;
 	
-	public Step createStep(UUID goalId, Step step) {
-		 Goal goal = goalRepository.findById(goalId).orElseThrow(() -> 
+	@Autowired
+	private UserRepository userRepository;
+	
+	public Step createStep(String email, UUID goalId, Step step) {
+		User user = userRepository.findByEmail(email).orElseThrow(() -> 
+				 new RuntimeException("User not found"));
+		 
+		Goal goal = goalRepository.findById(goalId).orElseThrow(() -> 
 	        new RuntimeException("Goal not found"));
 	    
-		System.out.println("Creating new step...Processing...");
+		System.out.println("Creating new step for user goal...Processing...");
 		
 		Optional<Step> existingStep = stepRepository.findByStepDescription(step.getStepDescription());
 		
 		if(existingStep.isPresent()) {
-			throw new RuntimeException("Step already exists.");
+			throw new RuntimeException("Step already exists for goal.");
 		}
 		
 		Step newStep = new Step();
@@ -49,8 +59,8 @@ public class StepService {
 		}
 		
 		newStep.setIsAiGenerated(step.getIsAiGenerated());
+		newStep.setDueDate(step.getDueDate());
 		newStep.setGoal(goal);
-		
 		
 		return stepRepository.save(newStep);
 	}
@@ -59,6 +69,12 @@ public class StepService {
 		return stepRepository.findByGoal_GoalId(goalId);
 	}
 	
+	public UUID getGoalIdByStepId(UUID stepId) {
+	    Step step = stepRepository.findById(stepId)
+	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Step not found"));
+	    return step.getGoal().getGoalId();
+	}
+
 	public Step getCurrentStepForGoal(UUID goalId, String userEmail) {
 	    Goal goal = goalRepository.findById(goalId)
 	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Goal not found"));
@@ -73,18 +89,15 @@ public class StepService {
 	        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No steps found for this goal");
 	    }
 
-	    steps.sort(Comparator.comparingInt(Step::getStepOrder));
-
 	    for (Step step : steps) {
-	        if (step.getStatus() != StepStatus.COMPLETED) {
+	        if (step.getStatus() == StepStatus.IN_PROGRESS || step.getStatus() == StepStatus.PENDING) {
 	            return step;
 	        }
+	     
 	    }
-
-	    return steps.get(steps.size() - 1);
+	    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No active steps found for this goal");
 	}
 
-	
 	public Step updateStep(UUID stepId, Step step) {
 		Step updatedStep = stepRepository.findById(stepId).orElseThrow(() -> 
 			new RuntimeException("Step not found."));
@@ -96,15 +109,35 @@ public class StepService {
 		return stepRepository.save(updatedStep);
 	}
 	
+	public void updateStepCountForGoal(UUID goalId) {
+	    List<Step> steps = stepRepository.findByGoal_GoalId(goalId);
+	    
+	    Goal goal = goalRepository.findById(goalId)
+	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Goal not found"));
 
-	public Step markStepAsCompleted(UUID stepId, Step step) {
+	    goal.setTotalSteps(steps.size());
+
+	    goalRepository.save(goal);
+	}
+
+	public Step markStepAsCompleted(UUID stepId) {
 		Step completedStep = stepRepository.findById(stepId).orElseThrow(() -> 
 				new RuntimeException("Step not found."));
 		completedStep.setStatus(StepStatus.COMPLETED);
-		return stepRepository.save(completedStep);
+		completedStep.setDateCompleted(LocalDateTime.now());
 		
+		return stepRepository.save(completedStep);
 	}
 
+	public Step markStepAsSkipped(UUID stepId) {
+		Step skippedStep = stepRepository.findById(stepId).orElseThrow(() -> 
+				new RuntimeException("Step not found"));
+		skippedStep.setStatus(StepStatus.SKIPPED);
+		skippedStep.setDateCompleted(LocalDateTime.now());
+		return stepRepository.save(skippedStep);
+	}
+
+	
 	public void deleteStep(UUID stepId) {
 		stepRepository.deleteById(stepId);
 	}
@@ -113,13 +146,12 @@ public class StepService {
 	    List<Step> steps = stepRepository.findByGoal_GoalId(goalId);
 	    stepRepository.deleteAll(steps);
 	}
-
-	public Step markStepAsSkipped(UUID stepId, Step step) {
-		Step skippedStep = stepRepository.findById(stepId).orElseThrow(() -> 
-				new RuntimeException("Step not found"));
-		skippedStep.setStatus(StepStatus.SKIPPED);
-		return stepRepository.save(skippedStep);
+	
+	public int getNextStepOrder(Goal goal) {
+		return goal.getTotalSteps() + 1;
 	}
 
-	
+	public List<Step> getCompletedStepsForUser() {
+		return stepRepository.findByStatus(StepStatus.COMPLETED);
+	}
 }

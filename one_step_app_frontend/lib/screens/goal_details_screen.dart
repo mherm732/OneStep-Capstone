@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:one_step_app_flutter/screens/HomeDashboardScreen.dart';
+import 'step_creation_screen.dart';
 
 class GoalDetailsScreen extends StatefulWidget {
   final String goalId;
@@ -44,13 +46,14 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen> {
   }
 
   Future<void> _fetchCurrentStep() async {
+    final t = await storage.read(key: 'jwt');
     if (token == null) return;
 
-    final url = Uri.parse('http://192.168.1.121:8080/steps/goal/${widget.goalId}/current');
+    final url = Uri.parse('http://192.168.1.121:8080/api/goals/steps/${widget.goalId}/current');
     final response = await http.get(
       url,
       headers: {
-        'Authorization': 'Bearer $token',
+        'Authorization': 'Bearer $t',
         'Content-Type': 'application/json',
       },
     );
@@ -60,11 +63,13 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen> {
       setState(() {
         currentStep = step;
         isLoading = false;
+        token = t;
       });
     } else {
       setState(() {
         currentStep = null;
         isLoading = false;
+        token = t;
       });
     }
   }
@@ -81,7 +86,7 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen> {
 
       if (response.statusCode == 200) {
         _showSnackBar('Action successful');
-        _fetchCurrentStep();
+        await _fetchCurrentStep();
       } else {
         _showSnackBar('Error: ${response.statusCode}');
       }
@@ -96,14 +101,53 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen> {
   }
 
   void _navigateToManualStepCreation() {
-    _showSnackBar('Manual Step Creation not implemented yet.');
+    Navigator.push(context, 
+      MaterialPageRoute(builder: (context) => StepCreationScreen(
+        goalId: widget.goalId, 
+        title: widget. goalTitle, 
+        description: widget.goalDescription)
+      ),
+    ).then((_){
+    _fetchCurrentStep();  
+  });
   }
 
-  void _generateStepPlaceholder() {
-    _showSnackBar('Generate Step not implemented yet.');
+  void _navigateToHomeDashboard(){
+    Navigator.push(context, 
+      MaterialPageRoute(builder: (context) => HomeDashboardScreen()));
   }
 
-  Widget _buildRectBox(String label, String value) {
+  Future<void> _generateStepFromAI() async {
+  if (token == null) {
+    _showSnackBar('No token found. Please log in again.');
+    return;
+  }
+
+  final url = Uri.parse('http://192.168.1.121:8080/ai/generateStep?goalId=${widget.goalId}');
+
+  try {
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      _showSnackBar('Step generated successfully!');
+      await _fetchCurrentStep(); 
+    } else {
+      _showSnackBar('Failed to generate step: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error calling generateStep: $e');
+    _showSnackBar('Server error while generating step.');
+  }
+}
+
+
+Widget _buildRectBox(String label, String value) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(16),
@@ -147,17 +191,26 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final String currentStepText = currentStep != null
+     bool hasActiveStep = currentStep != null;
+     String currentStepText = hasActiveStep
         ? currentStep!['stepDescription'] ?? 'No description'
         : 'No steps have been created for this goal.';
 
-    final String statusText = currentStep != null
+     String statusText = hasActiveStep
         ? currentStep!['status'] ?? 'Unknown'
         : 'None';
 
     return Scaffold(
       backgroundColor: const Color(0xffe6e6e6),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: IconButton(icon: const Icon(Icons.home_filled),
+        onPressed: () {
+          Navigator.pushReplacement(context, 
+            MaterialPageRoute(builder: (context) => const HomeDashboardScreen()),
+            );
+          },
+        ),
         backgroundColor: const Color(0xff1d2528),
         iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
@@ -193,25 +246,38 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildRectBox('Goal Description', widget.goalDescription),
-                _buildRectBox('Current Step', currentStep != null ? currentStep!['stepDescription'] ?? 'No description' : 'No steps have been created for this goal.'),
-                _buildRectBox('Step Status', currentStep != null ? currentStep!['status'] ?? 'Unknown' : 'None'),
-                const SizedBox(height: 16),
-                _buildButton(
-                  'Mark Step as Complete',
-                  currentStep != null
-                      ? () => _putToEndpoint('/steps/update/mark-complete/${currentStep!['stepId']}')
-                      : null,
-                  enabled: currentStep != null,
-                ),
-                _buildButton(
-                  'Skip Step',
-                  currentStep != null
-                      ? () => _putToEndpoint('/steps/skip/${currentStep!['stepId']}')
-                      : null,
-                  enabled: currentStep != null,
-                ),
-                _buildButton('Create Manual Step', _navigateToManualStepCreation),
-                _buildButton('Generate Step', _generateStepPlaceholder),
+                _buildRectBox('Current Step',currentStepText),
+                _buildRectBox('Step Status', statusText),
+                if (!hasActiveStep) ...[
+                  const SizedBox(height: 12),
+                  const Text(
+                    'You have completed or skipped all steps.\nYou can create a new step or mark this goal as complete.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      fontFamily: 'JetBrainsMono Nerd Font',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildButton('Create Manual Step', _navigateToManualStepCreation),
+                  _buildButton('Generate Step', _generateStepFromAI),
+                  _buildButton('Mark Goal as Complete', () {
+                    _putToEndpoint('/api/goals/update/complete/${widget.goalId}'); 
+                    _navigateToHomeDashboard();
+                  }),
+                 ] else ...[
+                  _buildButton(
+                    'Mark Step as Complete',
+                    () => _putToEndpoint('/api/goals/steps/update/mark-complete/${currentStep!['stepId']}'),
+                  ),
+                  _buildButton(
+                    'Skip Step',
+                    () => _putToEndpoint('/api/goals/steps/skip/${currentStep!['stepId']}'),
+                  ),
+                  _buildButton('Create Manual Step', _navigateToManualStepCreation),
+                  _buildButton('Generate Step', _generateStepFromAI),
+                ],
               ],
             ),
           ),

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:one_step_app_flutter/screens/goal_details_screen.dart';
+import 'package:one_step_app_flutter/screens/progress_screen.dart';
 import 'GoalCreationScreen.dart';
 import '../widgets/appbar_with_logout.dart';
 
@@ -68,7 +69,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           userGoals = data.map((goal) => {
                 'goalId': goal['goalId'].toString(),
                 'title': goal['title']?.toString() ?? 'Untitled',
-                'status': goal['status']?.toString() ?? 'Incomplete',
+                'goalStatus': goal['goalStatus']?.toString() ?? 'Incomplete',
                 'description': goal['description']?.toString() ?? '',
               }).toList();
           isLoading = false;
@@ -119,71 +120,55 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     return {'title': 'Unknown', 'status': 'Unknown'};
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    return Scaffold(
-      appBar: buildAppBarWithLogout(context, 'Dashboard'),
-      backgroundColor: const Color(0xffe6e6e6),
-      body: Row(
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: buildAppBarWithLogout(context, 'Dashboard'),
+    backgroundColor: const Color(0xffe6e6e6),
+    body: SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Left Panel
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0xffd5d1bf),
-              border: Border.all(color: const Color(0xff1d2528), width: 5.0),
-            ),
-            width: screenWidth * 0.50,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                _labelText('Your Goals'),
-                const SizedBox(height: 24),
-                if (isLoading)
-                  const CircularProgressIndicator()
-                else
-                  ...userGoals.map((goal) => _goalRow(goal)).toList(),
-                const SizedBox(height: 32),
-                _buttonBox(
-                  label: 'Create New Goal',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const GoalCreationScreen()),
-                    );
-                  },
+          _labelText('Your Goals'),
+          const SizedBox(height: 24),
+          if (isLoading)
+            const CircularProgressIndicator()
+          else if (userGoals.isEmpty)
+            const Text("No goals found. Start by creating one.")
+          else
+            ...userGoals.map((goal) => _goalRow(goal)).toList(),
+          const SizedBox(height: 32),
+          _buttonBox(
+            label: 'Create New Goal',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const GoalCreationScreen(),
                 ),
-              ],
-            ),
+              );
+            },
           ),
-
-          // Right Panel - Progress
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xffd5d1bf),
-                border: Border.all(color: const Color(0xff1d2528), width: 5.0),
-              ),
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buttonBox(
-                    label: 'View Progress',
-                    onPressed: () {
-                      // TODO: Navigate to progress screen
-                    },
-                  ),
-                ],
-              ),
-            ),
+          const SizedBox(height: 20),
+          _buttonBox(
+            label: 'View Progress',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ProgressScreen(),
+                ),
+              );
+            },
           ),
+          const SizedBox(height: 40),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   Widget _labelText(String text) {
     return Text(
@@ -209,8 +194,13 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           const SizedBox(width: 16),
           Expanded(
             flex: 1,
-            child: _statusBox(goal['status'] ?? ''),
+            child: _statusBox(goal['goalStatus'] ?? ''),
           ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 1, 
+            child: _deleteBox(goal['goalId'] ?? ''),
+          )
         ],
       ),
     );
@@ -307,4 +297,80 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
       ),
     );
   }
+
+  Widget _deleteBox(String goalId) {
+  return GestureDetector(
+    onTap: () async {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const Text('Are you sure you want to delete this goal?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Delete'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed != true) return;
+
+      final storage = FlutterSecureStorage();
+      final token = await storage.read(key: 'jwt');
+      if (token == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("No auth token found")),
+        );
+        return;
+      }
+
+      final url = Uri.parse('http://192.168.1.121:8080/api/goals/$goalId');
+      final response = await http.delete(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          userGoals.removeWhere((goal) => goal['goalId'] == goalId);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Goal deleted successfully")),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to delete goal: ${response.statusCode}")),
+        );
+      }
+    },
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      decoration: BoxDecoration(
+        color: const Color(0xffd9f316),
+        border: Border.all(color: const Color(0xff707070)),
+      ),
+      child: const Center(
+        child: Text(
+          'Delete Goal',
+          style: TextStyle(
+            fontFamily: 'JetBrainsMono Nerd Font',
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Color(0xff1d2528),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 }

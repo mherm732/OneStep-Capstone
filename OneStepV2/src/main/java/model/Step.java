@@ -46,6 +46,14 @@ public class Step {
 		this.status = status;
 	}
 	
+	public UUID getStepId() {
+		return stepId;
+	}
+
+	public void setStepId(UUID stepId) {
+		this.stepId = stepId;
+	}
+
 	public void setStepDescription(String stepDescription) {
 		this.stepDescription = stepDescription;
 	}
@@ -106,6 +114,10 @@ public class Step {
 		this.goal = goal;
 	}
 	
+	public Goal getGoal() {
+		return goal;
+	}
+	
 	@Override
 	public String toString() {
 		return "----------Step----------" + "\n" +
@@ -119,4 +131,5 @@ public class Step {
 				"Status: " + status + "\n" +
 				"--------------------------";
 	}
+
 }
