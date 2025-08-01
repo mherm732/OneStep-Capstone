@@ -53,7 +53,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.1.121:8080/api/goals/user'),
+        Uri.parse('http://192.168.1.11:8080/api/goals/user'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   }
 
   Future<Map<String, String>> fetchCurrentStep(String goalId) async {
-    final url = 'http://192.168.1.121:8080/api/goals/steps/$goalId';
+    final url = 'http://192.168.1.11:8080/api/goals/steps/$goalId';
 
     try {
       final response = await http.get(
@@ -125,8 +125,9 @@ Widget build(BuildContext context) {
   return Scaffold(
     appBar: buildAppBarWithLogout(context, 'Dashboard'),
     backgroundColor: const Color(0xffe6e6e6),
-    body: SingleChildScrollView(
+    body: SingleChildScrollView( child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      child: Center (
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -166,7 +167,9 @@ Widget build(BuildContext context) {
         ],
       ),
     ),
-  );
+   ),
+ ),
+);
 }
 
 
@@ -330,7 +333,7 @@ Widget build(BuildContext context) {
         return;
       }
 
-      final url = Uri.parse('http://192.168.1.121:8080/api/goals/$goalId');
+      final url = Uri.parse('http://192.168.1.11:8080/api/goals/$goalId');
       final response = await http.delete(
         url,
         headers: {

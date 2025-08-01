@@ -61,9 +61,9 @@ public class WebSecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
-            "http://localhost:64335",
-            "http://127.0.0.1:64335",
-            "http://192.168.1.121:64335"
+            "http://localhost:58513",
+            "http://127.0.0.1:58513",
+            "http://192.168.1.11:58513"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));

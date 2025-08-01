@@ -2,6 +2,7 @@ package security;
 
 import java.util.Date;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -11,7 +12,8 @@ import io.jsonwebtoken.SignatureAlgorithm;
 
 @Component
 public class JwtUtils {
-	private final String jwtSecret = "nT2lLTT59JUzY1BS3Af6c9FL+H1kBS8XKtwO2aIj6rGOuHRPvZXZ7y3B0ElLM+Fgph1OPX7Zp6RLDrMIM5xW1Q==";
+	@Value("${JWT_SECRET_KEY}")
+	private String jwtSecret;
 	private final long jwtExpirationMs = 86400000;
 	
 	@SuppressWarnings("deprecation")
