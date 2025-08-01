@@ -40,7 +40,7 @@ class _GoalCreationScreenState extends State<GoalCreationScreen> {
     };
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.121:8080/api/goals/create'),
+      Uri.parse('http://192.168.1.11:8080/api/goals/create'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

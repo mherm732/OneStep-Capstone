@@ -16,7 +16,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String password = '';
 
 Future<bool> registerUser(String name, String email, String password) async {
-  const String baseUrl = 'http://192.168.1.121:8080'; 
+  const String baseUrl = 'http://192.168.1.11:8080'; 
   final Uri url = Uri.parse('$baseUrl/api/auth/register');
 
   try {
