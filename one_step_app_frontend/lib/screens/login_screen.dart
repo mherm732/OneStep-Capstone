@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:one_step_app_flutter/screens/HomeDashboardScreen.dart';
+import 'package:one_step_app_flutter/environment.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final FlutterSecureStorage secureStorage = FlutterSecureStorage(); 
 
   Future<String?> login(String email, String password) async {
-    const String baseUrl = 'http://192.168.1.121:8080'; 
+    const String baseUrl = Environment.apiBaseUrl; 
     final Uri url = Uri.parse('$baseUrl/api/auth/login');
 
     try {

@@ -3,6 +3,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:one_step_app_flutter/screens/HomeDashboardScreen.dart';
+import 'package:one_step_app_flutter/environment.dart';
+
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -20,7 +22,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final FlutterSecureStorage secureStorage = FlutterSecureStorage();
 
 Future<String?> registerUser(String name, String email, String password) async {
-  const String baseUrl = 'http://192.168.1.121:8080'; 
+  const String baseUrl = Environment.apiBaseUrl; 
   final Uri url = Uri.parse('$baseUrl/api/auth/register');
 
   try {

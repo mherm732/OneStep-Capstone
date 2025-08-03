@@ -6,6 +6,7 @@ import 'package:one_step_app_flutter/screens/goal_details_screen.dart';
 import 'package:one_step_app_flutter/screens/progress_screen.dart';
 import 'GoalCreationScreen.dart';
 import '../widgets/appbar_with_logout.dart';
+import 'package:one_step_app_flutter/environment.dart';
 
 class HomeDashboardScreen extends StatefulWidget {
   const HomeDashboardScreen({super.key});
@@ -53,7 +54,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.1.121:8080/api/goals/user'),
+        Uri.parse('${Environment.apiBaseUrl}/api/goals/user'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -83,7 +84,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   }
 
   Future<Map<String, String>> fetchCurrentStep(String goalId) async {
-    final url = 'http://192.168.1.121:8080/api/goals/steps/$goalId';
+    final url = '${Environment.apiBaseUrl}/api/goals/steps/$goalId';
 
     try {
       final response = await http.get(
@@ -333,7 +334,7 @@ Widget build(BuildContext context) {
         return;
       }
 
-      final url = Uri.parse('http://192.168.1.121:8080/api/goals/$goalId');
+      final url = Uri.parse('${Environment.apiBaseUrl}/api/goals/$goalId');
       final response = await http.delete(
         url,
         headers: {

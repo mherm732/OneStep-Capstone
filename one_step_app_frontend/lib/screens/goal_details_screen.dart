@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:one_step_app_flutter/screens/HomeDashboardScreen.dart';
-import 'step_creation_screen.dart';
+import 'package:one_step_app_flutter/screens/step_creation_screen.dart';
+import 'package:one_step_app_flutter/environment.dart';
 
 class GoalDetailsScreen extends StatefulWidget {
   final String goalId;
@@ -49,7 +50,7 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen> {
     final t = await storage.read(key: 'jwt');
     if (token == null) return;
 
-    final url = Uri.parse('http://192.168.1.121:8080/api/goals/steps/${widget.goalId}/current');
+    final url = Uri.parse('${Environment.apiBaseUrl}/api/goals/steps/${widget.goalId}/current');
     final response = await http.get(
       url,
       headers: {
@@ -76,7 +77,7 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen> {
 
   Future<void> _putToEndpoint(String endpoint) async {
     if (token == null) return;
-    final url = Uri.parse('http://192.168.1.121:8080$endpoint');
+    final url = Uri.parse('${Environment.apiBaseUrl}$endpoint');
 
     try {
       final response = await http.put(
@@ -123,7 +124,7 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen> {
     return;
   }
 
-  final url = Uri.parse('http://192.168.1.121:8080/ai/generateStep?goalId=${widget.goalId}');
+  final url = Uri.parse('${Environment.apiBaseUrl}/ai/generateStep?goalId=${widget.goalId}');
 
   try {
     final response = await http.post(

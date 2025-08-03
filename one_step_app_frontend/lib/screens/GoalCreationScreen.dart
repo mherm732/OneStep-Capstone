@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'goal_details_screen.dart';
+import 'package:one_step_app_flutter/environment.dart';
 
 class GoalCreationScreen extends StatefulWidget {
   const GoalCreationScreen({Key? key}) : super(key: key);
@@ -40,7 +41,7 @@ class _GoalCreationScreenState extends State<GoalCreationScreen> {
     };
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.121:8080/api/goals/create'),
+      Uri.parse('${Environment.apiBaseUrl}/api/goals/create'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

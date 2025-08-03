@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:one_step_app_flutter/environment.dart';
 
 class ProgressScreen extends StatefulWidget {
   const ProgressScreen({super.key});
@@ -32,7 +33,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
       return;
     }
 
-    final url = Uri.parse('http://192.168.1.121:8080/api/goals/completed');
+    final url = Uri.parse('${Environment.apiBaseUrl}/api/goals/completed');
     final response = await http.get(
       url,
       headers: {
@@ -60,7 +61,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
       return;
     }
 
-    final url = Uri.parse('http://192.168.1.121:8080/api/goals/steps/completed');
+    final url = Uri.parse('${Environment.apiBaseUrl}/api/goals/steps/completed');
     final response = await http.get(
       url,
       headers: {
@@ -88,7 +89,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
       return;
     }
 
-    final url = Uri.parse('http://192.168.1.121:8080/api/goals/in-progress');
+    final url = Uri.parse('${Environment.apiBaseUrl}/api/goals/in-progress');
     final response = await http.get(
       url,
       headers: {

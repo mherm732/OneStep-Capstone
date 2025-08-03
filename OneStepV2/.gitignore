@@ -1,10 +1,23 @@
-HELP.md
+# Build
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### STS ###
+# Logs
+*.log
+*.pid
+/logs/
+
+# Environment/Security
+.env
+application.properties
+*.key
+*.secret
+
+# IDEs & Editors
+
+## Spring Tool Suite (STS)
 .apt_generated
 .classpath
 .factorypath
@@ -13,21 +26,22 @@ target/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
-.idea
+## IntelliJ IDEA
+.idea/
 *.iws
 *.iml
 *.ipr
 
-### NetBeans ###
+## NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### VS Code ###
+## VS Code
 .vscode/
+
+# Misc
+.DS_Store
+Thumbs.db

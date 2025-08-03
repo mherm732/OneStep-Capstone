@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'goal_details_screen.dart';
+import 'package:one_step_app_flutter/environment.dart';
 
 class StepCreationScreen extends StatefulWidget {
   final String goalId;
@@ -62,7 +63,7 @@ class _StepCreationScreenState extends State<StepCreationScreen> {
     };
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.121:8080/api/goals/steps/create/${widget.goalId}'),
+      Uri.parse('${Environment.apiBaseUrl}/api/goals/steps/create/${widget.goalId}'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
