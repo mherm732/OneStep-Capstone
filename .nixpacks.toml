@@ -1,0 +1,5 @@
+[phases.build]
+cmds = ["cd OneStepV2 && mvn clean install"]
+
+[start]
+cmd = "java -jar OneStepV2/target/*.jar"
