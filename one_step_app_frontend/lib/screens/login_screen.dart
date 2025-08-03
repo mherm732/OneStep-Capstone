@@ -19,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final FlutterSecureStorage secureStorage = FlutterSecureStorage(); 
 
   Future<String?> login(String email, String password) async {
-    const String baseUrl = 'http://192.168.1.11:8080'; 
+    const String baseUrl = 'http://192.168.1.121:8080'; 
     final Uri url = Uri.parse('$baseUrl/api/auth/login');
 
     try {
@@ -29,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
         body: jsonEncode({'email': email, 'password': password}),
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
         final String? token = responseData['token']; 
 
@@ -89,7 +89,6 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       body: Row(
         children: [
-          // Left Panel
           Container(
             width: screenWidth * 0.4,
             color: const Color(0xffd5d1bf),
@@ -105,8 +104,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-
-          // Right Panel
           Expanded(
             child: Container(
               color: const Color(0xff1d2528),

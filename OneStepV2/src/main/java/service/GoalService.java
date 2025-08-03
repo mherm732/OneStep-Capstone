@@ -29,18 +29,16 @@ public class GoalService {
 		
 		System.out.println("Creating new goal...Processing...");
 		
-		Optional<Goal> existingGoal = goalRepository.findByTitle(goal.getTitle());
+		Optional<Goal> existingGoal = goalRepository.findByTitleAndUser_UserId(goal.getTitle(), user.getUserId());
 		if (existingGoal.isPresent()) {
 			throw new RuntimeException("Goal already exists.");
 		}
-		
 		
 		Goal newGoal = new Goal();
 		
 		newGoal.setTitle(goal.getTitle());
 		newGoal.setGoalDescription(goal.getGoalDescription());
 		newGoal.setUser(user);
-		
 		
 		return goalRepository.save(newGoal);
 		
@@ -90,11 +88,10 @@ public class GoalService {
 		
 		System.out.println("Creating new goal...Processing...");
 		
-		Optional<Goal> existingGoal = goalRepository.findByTitle(goal.getTitle());
+		Optional<Goal> existingGoal = goalRepository.findByTitleAndUser_UserId(goal.getTitle(), user.getUserId());
 		if (existingGoal.isPresent()) {
 			throw new RuntimeException("Goal already exists.");
 		}
-		
 		
 		Goal newGoal = new Goal();
 		

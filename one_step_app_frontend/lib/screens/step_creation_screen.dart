@@ -62,7 +62,7 @@ class _StepCreationScreenState extends State<StepCreationScreen> {
     };
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.11:8080/api/goals/steps/create/${widget.goalId}'),
+      Uri.parse('http://192.168.1.121:8080/api/goals/steps/create/${widget.goalId}'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

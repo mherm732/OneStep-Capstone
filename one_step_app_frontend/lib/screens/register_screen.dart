@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:one_step_app_flutter/screens/HomeDashboardScreen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -15,8 +17,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String email = '';
   String password = '';
 
-Future<bool> registerUser(String name, String email, String password) async {
-  const String baseUrl = 'http://192.168.1.11:8080'; 
+  final FlutterSecureStorage secureStorage = FlutterSecureStorage();
+
+Future<String?> registerUser(String name, String email, String password) async {
+  const String baseUrl = 'http://192.168.1.121:8080'; 
   final Uri url = Uri.parse('$baseUrl/api/auth/register');
 
   try {
@@ -32,16 +36,25 @@ Future<bool> registerUser(String name, String email, String password) async {
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      print('Registration successful');
-      return true;
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      final String? token = responseData['token']; 
+
+      if(token != null) {
+        await secureStorage.write(key: 'jwt', value: token);
+        print('Registration successful. Token saved');
+        return token;
+      } else {
+          print("No token found in response.");
+          return null;
+      }
     } else {
       print(' Registration failed: ${response.statusCode}');
       print('Body: ${response.body}');
-      return false;
+      return null;
     }
   } catch (e) {
     print('Network error: $e');
-    return false;
+    return null;
   }
 }
 
@@ -55,13 +68,17 @@ void _submitForm() async {
 
     print('Name: $name, Email: $email, Password: $password');
 
-    bool success = await registerUser(name, email, password);
+    String? token = await registerUser(name, email, password);
 
-    if (success) {
+    if (token != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Registration successful')),
       );
-    } else {
+      Navigator.pushReplacement(
+        context, 
+        MaterialPageRoute(builder: (context) => const HomeDashboardScreen()),
+      );
+    } else if(mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Registration failed')),
       );
@@ -89,8 +106,7 @@ void _submitForm() async {
       ),
       body: Row(
         children: [
-          // Left Panel
-          Container(
+           Container(
             width: screenWidth * 0.4,
             color: const Color(0xffd5d1bf),
             child: Center(
@@ -105,7 +121,6 @@ void _submitForm() async {
               ),
             ),
           ),
-          // Right Panel (Form)
           Expanded(
             child: Container(
               color: const Color(0xff1d2528),

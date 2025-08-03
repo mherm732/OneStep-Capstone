@@ -88,14 +88,22 @@ public class StepService {
 	    if (steps.isEmpty()) {
 	        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No steps found for this goal");
 	    }
-
+	    
+	    Step current = null;
+	    
 	    for (Step step : steps) {
 	        if (step.getStatus() == StepStatus.IN_PROGRESS || step.getStatus() == StepStatus.PENDING) {
-	            return step;
+	           if(current == null || step.getStepOrder() < current.getStepOrder()) {
+	        	   current = step;
+	           }
 	        }
-	     
+	     }
+	    
+	    if (current != null) {
+	    	return current;
+	    } else {
+	    	throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No active steps found for this goal");
 	    }
-	    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No active steps found for this goal");
 	}
 
 	public Step updateStep(UUID stepId, Step step) {
