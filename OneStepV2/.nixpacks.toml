@@ -1,5 +1,8 @@
+[phases.setup]
+nixPkgs = ["openjdk", "maven"]
+
 [phases.build]
 cmds = ["cd OneStepV2 && mvn clean install"]
 
 [start]
-cmd = "java -jar OneStepV2/target/*.jar"
+cmd = "java -jar OneStepV2/target/OneStepV2-0.0.1-SNAPSHOT.jar"
